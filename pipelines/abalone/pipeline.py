@@ -46,6 +46,10 @@ def get_pipeline_session(region, default_bucket):
 # --------------------------------------------------------------------------
 # Pipeline definition
 # --------------------------------------------------------------------------
+def get_pipeline_custom_tags(**kwargs):
+    """Return custom tags for the pipeline."""
+    return []
+
 def get_pipeline(
     region,
     role,
