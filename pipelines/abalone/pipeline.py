@@ -330,11 +330,10 @@ def get_pipeline(
     )
     
     step_transform = TransformStep(
-    name="TransformStep",
-    transformer=transformer,
-    inputs=transform_inputs
+        name="AbaloneTransform",
+        step_args=step_args,
     )
-    
+
     # evaluation
     evaluation_report = PropertyFile(name="evaluation", output_name="evaluation_metrics", path="evaluation_metrics.json")
     sklearn_processor = SKLearnProcessor(
