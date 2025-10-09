@@ -200,7 +200,7 @@ def get_pipeline(
     # Parameters
     # -------------------------
     instance_count = ParameterInteger(name="InstanceCount", default_value=1)
-    processing_instance_type = ParameterString(name="InstanceType", default_value="ml.m5.xlarge")
+    instance_type = ParameterString(name="InstanceType", default_value="ml.m5.xlarge")
     max_automl_runtime = ParameterInteger(name="MaxAutoMLRuntime", default_value=3600)
     model_approval_status = ParameterString(name="ModelApprovalStatus", default_value="Approved")
     model_registration_metric_threshold = ParameterFloat(name="ModelRegistrationMetricThreshold", default_value=0.8)
@@ -278,7 +278,7 @@ def get_pipeline(
 
     sklearn_processor = SKLearnProcessor(
         framework_version="0.23-1",
-        instance_type=processing_instance_type,
+        instance_type=instance_type,
         instance_count=1,
         base_job_name=f"{base_job_prefix}/sklearn-preprocess",
         sagemaker_session=pipeline_session,
