@@ -450,6 +450,71 @@ def get_pipeline(
             approval_status=model_approval_status, model_metrics=model_metrics,
         ),
     )
+    check_job_config = CheckJobConfig(
+        role=role,
+        instance_count=1,
+        instance_type="ml.c5.xlarge",
+        volume_size_in_gb=120,
+        sagemaker_session=pipeline_session,
+    )
+
+    data_quality_check_config = DataQualityCheckConfig(
+        baseline_dataset=step_process.properties.ProcessingOutputConfig.Outputs["train"].S3Output.S3Uri,
+        dataset_format=DatasetFormat.csv(header=False, output_columns_position="START"),
+        output_s3_uri=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'dataqualitycheckstep'])
+    )
+
+    data_quality_check_step = QualityCheckStep(
+        name="DataQualityCheckStep",
+        skip_check=skip_check_data_quality,
+        register_new_baseline=register_new_baseline_data_quality,
+        quality_check_config=data_quality_check_config,
+        check_job_config=check_job_config,
+        supplied_baseline_statistics=supplied_baseline_statistics_data_quality,
+        supplied_baseline_constraints=supplied_baseline_constraints_data_quality,
+        model_package_group_name=model_package_group_name
+    )
+
+
+    #### Calculating the Data Bias
+
+    # The job configuration from the previous step is used here and the `DataConfig` class is used to define how
+    # the `ClarifyCheckStep` should compute the data bias. The training dataset is used again for the bias evaluation,
+    # the column representing the label is specified through the `label` parameter, and a `BiasConfig` is provided.
+
+    # In the `BiasConfig`, we specify a facet name (the column that is the focal point of the bias calculation),
+    # the value of the facet that determines the range of values it can hold, and the threshold value for the label.
+    # More details on `BiasConfig` can be found at
+    # https://sagemaker.readthedocs.io/en/stable/api/training/processing.html#sagemaker.clarify.BiasConfig
+
+    data_bias_analysis_cfg_output_path = f"s3://{default_bucket}/{base_job_prefix}/databiascheckstep/analysis_cfg"
+
+    data_bias_data_config = DataConfig(
+        s3_data_input_path=step_process.properties.ProcessingOutputConfig.Outputs["train"].S3Output.S3Uri,
+        s3_output_path=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'databiascheckstep']),
+        label=0,
+        dataset_type="text/csv",
+        s3_analysis_config_output_path=data_bias_analysis_cfg_output_path,
+    )
+
+    # We are using this bias config to configure clarify to detect bias based on the first feature in the featurized vector for Sex
+    data_bias_config = BiasConfig(
+        label_values_or_threshold=[15.0], facet_name=[8], facet_values_or_threshold=[[0.5]]
+    )
+
+    data_bias_check_config = DataBiasCheckConfig(
+        data_config=data_bias_data_config,
+        data_bias_config=data_bias_config,
+    )
+
+    data_bias_check_step = ClarifyCheckStep(
+        name="DataBiasCheckStep",
+        clarify_check_config=data_bias_check_config,
+        check_job_config=check_job_config,
+        skip_check=skip_check_data_bias,
+        register_new_baseline=register_new_baseline_data_bias,
+        model_package_group_name=model_package_group_name
+    )
 
     # -------------------------
     # Assemble pipeline
@@ -457,14 +522,37 @@ def get_pipeline(
     steps = [
         step_auto_ml_training, step_create_model, step_batch_transform, step_evaluation,
         step_cond_first, step_create_model_retry, step_batch_transform_retry, step_eval_retry, step_cond_retry,
-        step_register_model
+        step_register_model , data_quality_check_step, data_bias_check_step
     ]
 
     return Pipeline(
         name=pipeline_name,
         parameters=[instance_count, instance_type, max_automl_runtime,
                     model_approval_status, model_registration_metric_threshold,
-                    s3_bucket_param, target_attribute_name],
+                    s3_bucket_param, target_attribute_name,
+                    skip_check_data_quality,
+                    register_new_baseline_data_quality,
+                    supplied_baseline_statistics_data_quality,
+                    supplied_baseline_constraints_data_quality,
+        
+                    skip_check_data_bias,
+                    register_new_baseline_data_bias,
+                    supplied_baseline_constraints_data_bias,
+        
+                    skip_check_model_quality,
+                    register_new_baseline_model_quality,
+                    supplied_baseline_statistics_model_quality,
+                    supplied_baseline_constraints_model_quality,
+        
+                    skip_check_model_bias,
+                    register_new_baseline_model_bias,
+                    supplied_baseline_constraints_model_bias,
+        
+                    skip_check_model_explainability,
+                    register_new_baseline_model_explainability,
+                    supplied_baseline_constraints_model_explainability
+                   
+                   ],
         steps=steps,
         sagemaker_session=pipeline_session,
     )
