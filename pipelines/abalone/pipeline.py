@@ -46,9 +46,19 @@ def get_pipeline_session(region, default_bucket):
 # --------------------------------------------------------------------------
 # Pipeline definition
 # --------------------------------------------------------------------------
-def get_pipeline_custom_tags(**kwargs):
-    """Return custom tags for the pipeline."""
-    return []
+def get_pipeline_custom_tags(new_tags, region, sagemaker_project_name=None):
+    try:
+        sm_client = get_sagemaker_client(region)
+        response = sm_client.describe_project(ProjectName=sagemaker_project_name)
+        sagemaker_project_arn = response["ProjectArn"]
+        response = sm_client.list_tags(
+            ResourceArn=sagemaker_project_arn)
+        project_tags = response["Tags"]
+        for project_tag in project_tags:
+            new_tags.append(project_tag)
+    except Exception as e:
+        print(f"Error getting project tags: {e}")
+    return new_tags
 
 def get_pipeline(
     region,
