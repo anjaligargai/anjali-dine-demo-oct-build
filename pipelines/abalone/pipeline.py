@@ -328,6 +328,15 @@ def get_pipeline(
     step_batch_transform = TransformStep(
         name="BatchTransformStep", step_args=transformer.transform(data=s3_x_test_prefix, content_type="text/csv")
     )
+
+    step_args = transformer.transform(
+        data=transform_inputs.data,
+        input_filter="$[1:]",
+        join_source="Input",
+        output_filter="$[0,-1]",
+        content_type="text/csv",
+        split_type="Line",
+    )
     
     step_transform = TransformStep(
         name="AbaloneTransform",
