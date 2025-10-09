@@ -276,6 +276,24 @@ def get_pipeline(
     register_new_baseline_model_explainability = ParameterBoolean(name="RegisterNewModelExplainabilityBaseline", default_value=False)
     supplied_baseline_constraints_model_explainability = ParameterString(name="ModelExplainabilitySuppliedBaselineConstraints", default_value='')
 
+    sklearn_processor = SKLearnProcessor(
+        framework_version="0.23-1",
+        instance_type=processing_instance_type,
+        instance_count=1,
+        base_job_name=f"{base_job_prefix}/sklearn-preprocess",
+        sagemaker_session=pipeline_session,
+        role=role,
+    )
+    step_process = ProcessingStep(
+        name="PreprocessDineBrandsData",
+        step_args=sklearn_processor.run(
+            outputs=[ProcessingOutput(output_name="train", source="/opt/ml/processing/train"),
+                     ProcessingOutput(output_name="validation", source="/opt/ml/processing/validation"),
+                     ProcessingOutput(output_name="test", source="/opt/ml/processing/test")],
+            code=os.path.join(BASE_DIR, "preprocess.py"),
+            arguments=["--input-data", input_data],
+        )
+    )
     
     # -------------------------
     # Step 1: AutoML training
@@ -520,7 +538,7 @@ def get_pipeline(
     # Assemble pipeline
     # -------------------------
     steps = [
-        step_auto_ml_training, step_create_model, step_batch_transform, step_evaluation,
+        step_process,step_auto_ml_training, step_create_model, step_batch_transform, step_evaluation,
         step_cond_first, step_create_model_retry, step_batch_transform_retry, step_eval_retry, step_cond_retry,
         step_register_model , data_quality_check_step, data_bias_check_step
     ]
