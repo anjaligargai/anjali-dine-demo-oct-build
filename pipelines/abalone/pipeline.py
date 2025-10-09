@@ -200,7 +200,7 @@ def get_pipeline(
     # Parameters
     # -------------------------
     instance_count = ParameterInteger(name="InstanceCount", default_value=1)
-    instance_type = ParameterString(name="InstanceType", default_value="ml.m5.xlarge")
+    processing_instance_type = ParameterString(name="InstanceType", default_value="ml.m5.xlarge")
     max_automl_runtime = ParameterInteger(name="MaxAutoMLRuntime", default_value=3600)
     model_approval_status = ParameterString(name="ModelApprovalStatus", default_value="Approved")
     model_registration_metric_threshold = ParameterFloat(name="ModelRegistrationMetricThreshold", default_value=0.8)
