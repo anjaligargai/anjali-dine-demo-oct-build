@@ -650,38 +650,38 @@ def get_pipeline(
     )
 
 
-     model_metrics = ModelMetrics(
+    model_metrics = ModelMetrics(
         model_data_statistics=MetricsSource(
             s3_uri=data_quality_check_step.properties.CalculatedBaselineStatistics,
             content_type="application/json",
         ),
-        model_data_constraints=MetricsSource(
+    model_data_constraints=MetricsSource(
             s3_uri=data_quality_check_step.properties.CalculatedBaselineConstraints,
             content_type="application/json",
         ),
-        bias_pre_training=MetricsSource(
+    bias_pre_training=MetricsSource(
             s3_uri=data_bias_check_step.properties.CalculatedBaselineConstraints,
             content_type="application/json",
         ),
-        model_statistics=MetricsSource(
+    model_statistics=MetricsSource(
             s3_uri=model_quality_check_step.properties.CalculatedBaselineStatistics,
             content_type="application/json",
         ),
-        model_constraints=MetricsSource(
+    model_constraints=MetricsSource(
             s3_uri=model_quality_check_step.properties.CalculatedBaselineConstraints,
             content_type="application/json",
         ),
-        bias_post_training=MetricsSource(
+    bias_post_training=MetricsSource(
             s3_uri=model_bias_check_step.properties.CalculatedBaselineConstraints,
             content_type="application/json",
         ),
-        bias=MetricsSource(
+    bias=MetricsSource(
             # This field can also be set as the merged bias report
             # with both pre-training and post-training bias metrics
             s3_uri=model_bias_check_step.properties.CalculatedBaselineConstraints,
             content_type="application/json",
         ),
-        explainability=MetricsSource(
+    explainability=MetricsSource(
             s3_uri=model_explainability_check_step.properties.CalculatedBaselineConstraints,
             content_type="application/json",
         )
@@ -692,35 +692,35 @@ def get_pipeline(
             s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
             content_type="application/json",
         ),
-        model_data_constraints=MetricsSource(
+    model_data_constraints=MetricsSource(
             s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-        bias_pre_training_constraints=MetricsSource(
+    bias_pre_training_constraints=MetricsSource(
             s3_uri=data_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-        bias_config_file=FileSource(
+    bias_config_file=FileSource(
             s3_uri=model_bias_check_config.monitoring_analysis_config_uri,
             content_type="application/json",
         ),
-        model_statistics=MetricsSource(
+    model_statistics=MetricsSource(
             s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
             content_type="application/json",
         ),
-        model_constraints=MetricsSource(
+    model_constraints=MetricsSource(
             s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-        bias_post_training_constraints=MetricsSource(
+    bias_post_training_constraints=MetricsSource(
             s3_uri=model_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-        explainability_constraints=MetricsSource(
+    explainability_constraints=MetricsSource(
             s3_uri=model_explainability_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-        explainability_config_file=FileSource(
+    explainability_config_file=FileSource(
             s3_uri=model_explainability_check_config.monitoring_analysis_config_uri,
             content_type="application/json",
         )
