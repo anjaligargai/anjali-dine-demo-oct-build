@@ -228,7 +228,7 @@ def get_pipeline(
             ],
             outputs=[ProcessingOutput(output_name="evaluation_metrics", source="/opt/ml/processing/evaluation",
                                       destination=Join(on="/", values=["s3:/", s3_bucket_param, output_prefix, "evaluation_retry"]))],
-            code="pipelines/abalone/evalution.py",
+            code="pipelines/abalone/evaluate.py",
         ),
         property_files=[evaluation_report],
     )
