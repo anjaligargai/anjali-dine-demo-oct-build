@@ -9,7 +9,76 @@ Else → New data retrain
 
 import subprocess, sys
 subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn", "--quiet"])
+import os
 
+import boto3
+import sagemaker
+import sagemaker.session
+
+from sagemaker.estimator import Estimator
+from sagemaker.inputs import TrainingInput, CreateModelInput, TransformInput
+from sagemaker.model import Model
+from sagemaker.transformer import Transformer
+
+from sagemaker.model_metrics import (
+    MetricsSource,
+    ModelMetrics,
+    FileSource
+)
+from sagemaker.drift_check_baselines import DriftCheckBaselines
+from sagemaker.processing import (
+    ProcessingInput,
+    ProcessingOutput,
+    ScriptProcessor,
+)
+from sagemaker.sklearn.processing import SKLearnProcessor
+from sagemaker.workflow.conditions import ConditionLessThanOrEqualTo
+from sagemaker.workflow.condition_step import (
+    ConditionStep,
+)
+from sagemaker.workflow.functions import (
+    JsonGet,
+)
+from sagemaker.workflow.parameters import (
+    ParameterBoolean,
+    ParameterInteger,
+    ParameterString,
+)
+from sagemaker.workflow.pipeline import Pipeline
+from sagemaker.workflow.properties import PropertyFile
+from sagemaker.workflow.steps import (
+    ProcessingStep,
+    TrainingStep,
+    CreateModelStep,
+    TransformStep
+)
+from sagemaker.workflow.step_collections import RegisterModel
+from sagemaker.workflow.check_job_config import CheckJobConfig
+from sagemaker.workflow.clarify_check_step import (
+    DataBiasCheckConfig,
+    ClarifyCheckStep,
+    ModelBiasCheckConfig,
+    ModelPredictedLabelConfig,
+    ModelExplainabilityCheckConfig,
+    SHAPConfig
+)
+from sagemaker.workflow.quality_check_step import (
+    DataQualityCheckConfig,
+    ModelQualityCheckConfig,
+    QualityCheckStep,
+)
+from sagemaker.workflow.execution_variables import ExecutionVariables
+from sagemaker.workflow.functions import Join
+from sagemaker.model_monitor import DatasetFormat, model_monitoring
+from sagemaker.clarify import (
+    BiasConfig,
+    DataConfig,
+    ModelConfig
+)
+from sagemaker.workflow.model_step import ModelStep
+from sagemaker.model import Model
+from sagemaker.workflow.pipeline_context import PipelineSession
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 import boto3
 import pandas as pd
 from io import StringIO
@@ -36,12 +105,50 @@ from sagemaker.automl.automl import AutoML
 # --------------------------------------------------------------------------
 # Helper
 # --------------------------------------------------------------------------
+def get_session(region, default_bucket):
+    """Gets the sagemaker session based on the region.
+
+    Args:
+        region: the aws region to start the session
+        default_bucket: the bucket to use for storing the artifacts
+
+    Returns:
+        `sagemaker.session.Session instance
+    """
+
+    boto_session = boto3.Session(region_name=region)
+
+    sagemaker_client = boto_session.client("sagemaker")
+    runtime_client = boto_session.client("sagemaker-runtime")
+    return sagemaker.session.Session(
+        boto_session=boto_session,
+        sagemaker_client=sagemaker_client,
+        sagemaker_runtime_client=runtime_client,
+        default_bucket=default_bucket,
+    )
+
+
 def get_pipeline_session(region, default_bucket):
+    """Gets the pipeline session based on the region.
+
+    Args:
+        region: the aws region to start the session
+        default_bucket: the bucket to use for storing the artifacts
+
+    Returns:
+        PipelineSession instance
+    """
+
     boto_session = boto3.Session(region_name=region)
     sagemaker_client = boto_session.client("sagemaker")
+
     return PipelineSession(
-        boto_session=boto_session, sagemaker_client=sagemaker_client, default_bucket=default_bucket
+        boto_session=boto_session,
+        sagemaker_client=sagemaker_client,
+        default_bucket=default_bucket,
     )
+
+
 
 # --------------------------------------------------------------------------
 # Pipeline definition
@@ -59,6 +166,20 @@ def get_pipeline_custom_tags(new_tags, region, sagemaker_project_name=None):
     except Exception as e:
         print(f"Error getting project tags: {e}")
     return new_tags
+
+def get_sagemaker_client(region):
+     """Gets the sagemaker client.
+
+        Args:
+            region: the aws region to start the session
+            default_bucket: the bucket to use for storing the artifacts
+
+        Returns:
+            `sagemaker.session.Session instance
+        """
+     boto_session = boto3.Session(region_name=region)
+     sagemaker_client = boto_session.client("sagemaker")
+     return sagemaker_client
 
 def get_pipeline(
     region,
