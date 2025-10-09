@@ -101,7 +101,8 @@ from sagemaker.workflow.condition_step import ConditionStep
 from sagemaker.workflow.functions import JsonGet
 from sagemaker.workflow.condition_step import JsonGet
 from sagemaker.automl.automl import AutoML
-
+from sagemaker.transformer import Transformer
+from sagemaker.workflow.steps import TransformStep
 # --------------------------------------------------------------------------
 # Helper
 # --------------------------------------------------------------------------
@@ -327,7 +328,13 @@ def get_pipeline(
     step_batch_transform = TransformStep(
         name="BatchTransformStep", step_args=transformer.transform(data=s3_x_test_prefix, content_type="text/csv")
     )
-
+    
+    step_transform = TransformStep(
+    name="TransformStep",
+    transformer=transformer,
+    inputs=transform_inputs
+    )
+    
     # evaluation
     evaluation_report = PropertyFile(name="evaluation", output_name="evaluation_metrics", path="evaluation_metrics.json")
     sklearn_processor = SKLearnProcessor(
