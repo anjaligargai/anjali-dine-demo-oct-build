@@ -248,6 +248,35 @@ def get_pipeline(
     s3_x_test_prefix = f"s3://{bucket}/{prepared_prefix}/x_test/"
     s3_y_test = f"s3://{bucket}/{y_test_s3_key}"
 
+
+    # for data quality check step
+    skip_check_data_quality = ParameterBoolean(name="SkipDataQualityCheck", default_value=False)
+    register_new_baseline_data_quality = ParameterBoolean(name="RegisterNewDataQualityBaseline", default_value=False)
+    supplied_baseline_statistics_data_quality = ParameterString(name="DataQualitySuppliedStatistics", default_value='')
+    supplied_baseline_constraints_data_quality = ParameterString(name="DataQualitySuppliedConstraints", default_value='')
+
+    # for data bias check step
+    skip_check_data_bias = ParameterBoolean(name="SkipDataBiasCheck", default_value = False)
+    register_new_baseline_data_bias = ParameterBoolean(name="RegisterNewDataBiasBaseline", default_value=False)
+    supplied_baseline_constraints_data_bias = ParameterString(name="DataBiasSuppliedBaselineConstraints", default_value='')
+
+    # for model quality check step
+    skip_check_model_quality = ParameterBoolean(name="SkipModelQualityCheck", default_value = False)
+    register_new_baseline_model_quality = ParameterBoolean(name="RegisterNewModelQualityBaseline", default_value=False)
+    supplied_baseline_statistics_model_quality = ParameterString(name="ModelQualitySuppliedStatistics", default_value='')
+    supplied_baseline_constraints_model_quality = ParameterString(name="ModelQualitySuppliedConstraints", default_value='')
+
+    # for model bias check step
+    skip_check_model_bias = ParameterBoolean(name="SkipModelBiasCheck", default_value=False)
+    register_new_baseline_model_bias = ParameterBoolean(name="RegisterNewModelBiasBaseline", default_value=False)
+    supplied_baseline_constraints_model_bias = ParameterString(name="ModelBiasSuppliedBaselineConstraints", default_value='')
+
+    # for model explainability check step
+    skip_check_model_explainability = ParameterBoolean(name="SkipModelExplainabilityCheck", default_value=False)
+    register_new_baseline_model_explainability = ParameterBoolean(name="RegisterNewModelExplainabilityBaseline", default_value=False)
+    supplied_baseline_constraints_model_explainability = ParameterString(name="ModelExplainabilitySuppliedBaselineConstraints", default_value='')
+
+    
     # -------------------------
     # Step 1: AutoML training
     # -------------------------
