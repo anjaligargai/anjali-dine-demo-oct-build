@@ -328,7 +328,10 @@ def get_pipeline(
     step_batch_transform = TransformStep(
         name="BatchTransformStep", step_args=transformer.transform(data=s3_x_test_prefix, content_type="text/csv")
     )
-
+    
+    transform_inputs = TransformInput(
+        data=step_process.properties.ProcessingOutputConfig.Outputs["test"].S3Output.S3Uri,
+    )
     step_args = transformer.transform(
         data=transform_inputs.data,
         input_filter="$[1:]",
