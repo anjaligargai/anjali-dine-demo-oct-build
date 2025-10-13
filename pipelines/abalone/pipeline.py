@@ -8,6 +8,7 @@ import subprocess, sys
 subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn", "--quiet"])
 import os
 import boto3
+import pandas as pd
 import sagemaker
 import sagemaker.session
 from sagemaker.estimator import Estimator
