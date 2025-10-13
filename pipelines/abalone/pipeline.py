@@ -250,7 +250,7 @@ def get_pipeline(
         sagemaker_session=pipeline_session,
         max_candidates=5,
         max_runtime_per_training_job_in_seconds=max_automl_runtime,
-        mode="AutoML"
+        mode="ENSEMBLING"
     )
     step_auto_ml_training = AutoMLStep(
         name="AutoMLTrainingStep",
