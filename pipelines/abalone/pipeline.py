@@ -617,7 +617,6 @@ def get_pipeline(
     step_transform,
     step_evaluation,
     step_cond_first,       # includes retry steps internally
-    step_cond_retry,       # includes new-data AutoML internally
     step_register_model,
     data_quality_check_step,
     data_bias_check_step,
