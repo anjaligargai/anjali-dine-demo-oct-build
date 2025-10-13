@@ -353,18 +353,24 @@ def get_pipeline(
         model_package_group_name=model_package_group_name
     )
 
-    
-    
+    model_quality_check_config = ModelQualityCheckConfig(
+        baseline_dataset=step_transform.properties.TransformOutput.S3OutputPath,
+        dataset_format=DatasetFormat.csv(header=False),
+        output_s3_uri=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'modelqualitycheckstep']),
+        problem_type='Regression',
+        inference_attribute='_c0',
+        ground_truth_attribute='_c1'
+    )
+
     model_quality_check_step = QualityCheckStep(
         name="ModelQualityCheckStep",
         skip_check=skip_check_model_quality,
         register_new_baseline=register_new_baseline_model_quality,
-        quality_check_config=ModelQualityCheckConfig(),
+        quality_check_config=model_quality_check_config,
         check_job_config=check_job_config,
         supplied_baseline_statistics=supplied_baseline_statistics_model_quality,
         supplied_baseline_constraints=supplied_baseline_constraints_model_quality,
         model_package_group_name=model_package_group_name
-    )
 
     # Bias and Explainability Checks (Clarify)
     data_bias_check_step = ClarifyCheckStep(name="DataBiasCheckStep", clarify_check_config=DataBiasCheckConfig(), check_job_config=check_job_config, skip_check=skip_check_data_bias)
