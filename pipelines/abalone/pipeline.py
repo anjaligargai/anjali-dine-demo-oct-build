@@ -8,9 +8,6 @@ import subprocess, sys
 subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn", "--quiet"])
 import os
 import boto3
-import pandas as pd
-from io import StringIO
-from sklearn.model_selection import train_test_split
 import sagemaker
 import sagemaker.session
 from sagemaker.estimator import Estimator
@@ -72,6 +69,30 @@ from sagemaker.clarify import (
 from sagemaker.workflow.model_step import ModelStep
 from sagemaker.workflow.pipeline_context import PipelineSession
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+import boto3
+import pandas as pd
+from io import StringIO
+from sklearn.model_selection import train_test_split
+from sagemaker import AutoML, AutoMLInput, get_execution_role
+from sagemaker import MetricsSource, ModelMetrics
+from sagemaker.workflow.functions import Join
+from sagemaker.processing import ProcessingOutput, ProcessingInput
+from sagemaker.sklearn.processing import SKLearnProcessor
+from sagemaker.transformer import Transformer
+from sagemaker.workflow.automl_step import AutoMLStep
+from sagemaker.workflow.model_step import ModelStep
+from sagemaker.workflow.parameters import ParameterFloat, ParameterInteger, ParameterString
+from sagemaker.workflow.pipeline import Pipeline
+from sagemaker.workflow.pipeline_context import PipelineSession
+from sagemaker.workflow.properties import PropertyFile
+from sagemaker.workflow.steps import ProcessingStep, TransformStep
+from sagemaker.workflow.conditions import ConditionGreaterThanOrEqualTo
+from sagemaker.workflow.condition_step import ConditionStep
+from sagemaker.workflow.functions import JsonGet
+from sagemaker.workflow.condition_step import JsonGet
+from sagemaker.automl.automl import AutoML
+from sagemaker.transformer import Transformer
+from sagemaker.workflow.steps import TransformStep
 
 # -------------------------
 # Helper session functions
