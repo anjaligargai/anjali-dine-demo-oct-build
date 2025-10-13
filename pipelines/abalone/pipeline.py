@@ -335,17 +335,26 @@ def get_pipeline(
     # -------------------------
     # Model Monitoring Steps (sketched)
     # -------------------------
+
+    data_quality_check_config = DataQualityCheckConfig(
+        baseline_dataset=step_process.properties.ProcessingOutputConfig.Outputs["train"].S3Output.S3Uri,
+        dataset_format=DatasetFormat.csv(header=False, output_columns_position="START"),
+        output_s3_uri=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'dataqualitycheckstep'])
+    )
+
     data_quality_check_step = QualityCheckStep(
         name="DataQualityCheckStep",
         skip_check=skip_check_data_quality,
         register_new_baseline=register_new_baseline_data_quality,
-        quality_check_config=DataQualityCheckConfig(),
+        quality_check_config=data_quality_check_config,
         check_job_config=check_job_config,
         supplied_baseline_statistics=supplied_baseline_statistics_data_quality,
         supplied_baseline_constraints=supplied_baseline_constraints_data_quality,
         model_package_group_name=model_package_group_name
     )
 
+    
+    
     model_quality_check_step = QualityCheckStep(
         name="ModelQualityCheckStep",
         skip_check=skip_check_model_quality,
