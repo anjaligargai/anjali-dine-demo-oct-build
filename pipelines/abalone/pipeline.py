@@ -269,13 +269,18 @@ def get_pipeline(
     # -------------------------
     # Batch Transform
     # -------------------------
+    
+
     transformer = Transformer(
-        model_name=step_create_model.properties.ModelName,
-        instance_count=1,
-        instance_type=instance_type,
-        output_path=Join(on="/", values=["s3:/", s3_bucket_param, output_prefix, "transform"]),
-        sagemaker_session=pipeline_session,
+    model_name=step_create_model.properties.ModelName,
+    instance_count=1,
+    instance_type=instance_type,
+    output_path=Join(on="/", values=["s3:/", s3_bucket_param, output_prefix, "transform"]),
+    sagemaker_session=pipeline_session,
+    accept="text/csv"  # <-- fix: set Accept same as ContentType
     )
+
+    
     step_transform = TransformStep(
         name="BatchTransformStep",
         step_args=transformer.transform(
@@ -285,6 +290,7 @@ def get_pipeline(
             content_type="text/csv",
             split_type="Line"
         )
+
     )
 
     # -------------------------
