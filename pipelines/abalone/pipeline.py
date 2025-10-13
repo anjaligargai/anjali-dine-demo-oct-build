@@ -277,7 +277,8 @@ def get_pipeline(
     instance_type=instance_type,
     output_path=Join(on="/", values=["s3:/", s3_bucket_param, output_prefix, "transform"]),
     sagemaker_session=pipeline_session,
-    accept="text/csv"  # <-- fix: set Accept same as ContentType
+    accept="text/csv",                # ✅ matches ContentType
+    assemble_with="Line"              # ✅ matches SplitType
     )
 
     
