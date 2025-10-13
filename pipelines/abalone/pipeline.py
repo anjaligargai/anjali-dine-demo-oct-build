@@ -372,6 +372,9 @@ def get_pipeline(
         supplied_baseline_constraints=supplied_baseline_constraints_model_quality,
         model_package_group_name=model_package_group_name
 
+    )
+
+    
     # Bias and Explainability Checks (Clarify)
     data_bias_check_step = ClarifyCheckStep(name="DataBiasCheckStep", clarify_check_config=DataBiasCheckConfig(), check_job_config=check_job_config, skip_check=skip_check_data_bias)
     model_bias_check_step = ClarifyCheckStep(name="ModelBiasCheckStep", clarify_check_config=ModelBiasCheckConfig(), check_job_config=check_job_config, skip_check=skip_check_model_bias)
