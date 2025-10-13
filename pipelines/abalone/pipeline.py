@@ -616,7 +616,7 @@ def get_pipeline(
     step_create_model,
     step_transform,
     step_evaluation,
-    step_cond_first,       # includes retry steps internally
+    step_cond_first,       # contains retry steps internally
     step_register_model,
     data_quality_check_step,
     data_bias_check_step,
@@ -624,6 +624,7 @@ def get_pipeline(
     model_bias_check_step,
     model_explainability_check_step
     ]
+
 
 
     return Pipeline(
