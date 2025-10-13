@@ -374,20 +374,181 @@ def get_pipeline(
 
     )
 
-    
-    # Bias and Explainability Checks (Clarify)
-    data_bias_check_step = ClarifyCheckStep(name="DataBiasCheckStep", clarify_check_config=DataBiasCheckConfig(), check_job_config=check_job_config, skip_check=skip_check_data_bias)
-    model_bias_check_step = ClarifyCheckStep(name="ModelBiasCheckStep", clarify_check_config=ModelBiasCheckConfig(), check_job_config=check_job_config, skip_check=skip_check_model_bias)
-    model_explainability_check_step = ClarifyCheckStep(name="ModelExplainabilityCheckStep", clarify_check_config=ModelExplainabilityCheckConfig(), check_job_config=check_job_config, skip_check=skip_check_model_explainability)
+    data_bias_analysis_cfg_output_path = f"s3://{default_bucket}/{base_job_prefix}/databiascheckstep/analysis_cfg"
 
-    # -------------------------
-    # DriftCheckBaselines & Model Metrics
-    # -------------------------
-    drift_check_baselines = DriftCheckBaselines()
+    data_bias_data_config = DataConfig(
+        s3_data_input_path=step_process.properties.ProcessingOutputConfig.Outputs["train"].S3Output.S3Uri,
+        s3_output_path=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'databiascheckstep']),
+        label=0,
+        dataset_type="text/csv",
+        s3_analysis_config_output_path=data_bias_analysis_cfg_output_path,
+    )
+
+    # We are using this bias config to configure clarify to detect bias based on the first feature in the featurized vector for Sex
+    data_bias_config = BiasConfig(
+        label_values_or_threshold=[15.0], facet_name=[8], facet_values_or_threshold=[[0.5]]
+    )
+
+    data_bias_check_config = DataBiasCheckConfig(
+        data_config=data_bias_data_config,
+        data_bias_config=data_bias_config,
+    )
+
+    data_bias_check_step = ClarifyCheckStep(
+        name="DataBiasCheckStep",
+        clarify_check_config=data_bias_check_config,
+        check_job_config=check_job_config,
+        skip_check=skip_check_data_bias,
+        register_new_baseline=register_new_baseline_data_bias,
+        model_package_group_name=model_package_group_name
+    )
+
+
+    model_bias_analysis_cfg_output_path = f"s3://{default_bucket}/{base_job_prefix}/modelbiascheckstep/analysis_cfg"
+
+    model_bias_data_config = DataConfig(
+        s3_data_input_path=step_process.properties.ProcessingOutputConfig.Outputs["train"].S3Output.S3Uri,
+        s3_output_path=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'modelbiascheckstep']),
+        s3_analysis_config_output_path=model_bias_analysis_cfg_output_path,
+        label=0,
+        dataset_type="text/csv",
+    )
+
+    model_config = ModelConfig(
+        model_name=step_create_model.properties.ModelName,
+        instance_count=1,
+        instance_type='ml.m5.large',
+    )
+
+    # We are using this bias config to configure clarify to detect bias based on the first feature in the featurized vector for Sex
+    model_bias_config = BiasConfig(
+        label_values_or_threshold=[15.0], facet_name=[8], facet_values_or_threshold=[[0.5]]
+    )
+
+    model_bias_check_config = ModelBiasCheckConfig(
+        data_config=model_bias_data_config,
+        data_bias_config=model_bias_config,
+        model_config=model_config,
+        model_predicted_label_config=ModelPredictedLabelConfig()
+    )
+
+    model_bias_check_step = ClarifyCheckStep(
+        name="ModelBiasCheckStep",
+        clarify_check_config=model_bias_check_config,
+        check_job_config=check_job_config,
+        skip_check=skip_check_model_bias,
+        register_new_baseline=register_new_baseline_model_bias,
+        supplied_baseline_constraints=supplied_baseline_constraints_model_bias,
+        model_package_group_name=model_package_group_name
+    )
+
+    model_explainability_analysis_cfg_output_path = "s3://{}/{}/{}/{}".format(
+        default_bucket,
+        base_job_prefix,
+        "modelexplainabilitycheckstep",
+        "analysis_cfg"
+    )
+
+    model_explainability_data_config = DataConfig(
+        s3_data_input_path=step_process.properties.ProcessingOutputConfig.Outputs["train"].S3Output.S3Uri,
+        s3_output_path=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'modelexplainabilitycheckstep']),
+        s3_analysis_config_output_path=model_explainability_analysis_cfg_output_path,
+        label=0,
+        dataset_type="text/csv",
+    )
+    shap_config = SHAPConfig(
+        seed=123,
+        num_samples=10
+    )
+    model_explainability_check_config = ModelExplainabilityCheckConfig(
+        data_config=model_explainability_data_config,
+        model_config=model_config,
+        explainability_config=shap_config,
+    )
+    model_explainability_check_step = ClarifyCheckStep(
+        name="ModelExplainabilityCheckStep",
+        clarify_check_config=model_explainability_check_config,
+        check_job_config=check_job_config,
+        skip_check=skip_check_model_explainability,
+        register_new_baseline=register_new_baseline_model_explainability,
+        supplied_baseline_constraints=supplied_baseline_constraints_model_explainability,
+        model_package_group_name=model_package_group_name
+    )
+
+    
     model_metrics = ModelMetrics(
-        model_statistics=MetricsSource(
-            s3_uri=Join(on="/", values=["s3:/", s3_bucket_param, output_prefix, "evaluation", "evaluation_metrics.json"]),
-            content_type="application/json"
+        model_data_statistics=MetricsSource(
+            s3_uri=data_quality_check_step.properties.CalculatedBaselineStatistics,
+            content_type="application/json",
+        ),
+    model_data_constraints=MetricsSource(
+            s3_uri=data_quality_check_step.properties.CalculatedBaselineConstraints,
+            content_type="application/json",
+        ),
+    bias_pre_training=MetricsSource(
+            s3_uri=data_bias_check_step.properties.CalculatedBaselineConstraints,
+            content_type="application/json",
+        ),
+    model_statistics=MetricsSource(
+            s3_uri=model_quality_check_step.properties.CalculatedBaselineStatistics,
+            content_type="application/json",
+        ),
+    model_constraints=MetricsSource(
+            s3_uri=model_quality_check_step.properties.CalculatedBaselineConstraints,
+            content_type="application/json",
+        ),
+    bias_post_training=MetricsSource(
+            s3_uri=model_bias_check_step.properties.CalculatedBaselineConstraints,
+            content_type="application/json",
+        ),
+    bias=MetricsSource(
+            # This field can also be set as the merged bias report
+            # with both pre-training and post-training bias metrics
+            s3_uri=model_bias_check_step.properties.CalculatedBaselineConstraints,
+            content_type="application/json",
+        ),
+    explainability=MetricsSource(
+            s3_uri=model_explainability_check_step.properties.CalculatedBaselineConstraints,
+            content_type="application/json",
+        )
+    )
+
+    drift_check_baselines = DriftCheckBaselines(
+        model_data_statistics=MetricsSource(
+            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
+            content_type="application/json",
+        ),
+    model_data_constraints=MetricsSource(
+            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+    bias_pre_training_constraints=MetricsSource(
+            s3_uri=data_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+    bias_config_file=FileSource(
+            s3_uri=model_bias_check_config.monitoring_analysis_config_uri,
+            content_type="application/json",
+        ),
+    model_statistics=MetricsSource(
+            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
+            content_type="application/json",
+        ),
+    model_constraints=MetricsSource(
+            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+    bias_post_training_constraints=MetricsSource(
+            s3_uri=model_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+    explainability_constraints=MetricsSource(
+            s3_uri=model_explainability_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+    explainability_config_file=FileSource(
+            s3_uri=model_explainability_check_config.monitoring_analysis_config_uri,
+            content_type="application/json",
         )
     )
 
