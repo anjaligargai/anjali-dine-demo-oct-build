@@ -14,7 +14,7 @@ from sagemaker.estimator import Estimator
 from sagemaker.inputs import TrainingInput, CreateModelInput, TransformInput
 from sagemaker.model import Model
 from sagemaker.transformer import Transformer
-
+from sagemaker.workflow.conditions import ConditionGreaterThanOrEqualTo
 from sagemaker.model_metrics import (
     MetricsSource,
     ModelMetrics,
