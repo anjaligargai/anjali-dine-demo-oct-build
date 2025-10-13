@@ -332,11 +332,11 @@ def get_pipeline(
     transform_inputs = TransformInput(
         data=step_process.properties.ProcessingOutputConfig.Outputs["test"].S3Output.S3Uri,
     )
+    
     step_args = transformer.transform(
     data=transform_inputs.data,
     input_filter="$[1:]",
     join_source="Input",
-    output_filter="$[0,-1]",
     content_type="text/csv",
     split_type="Line",
     accept="text/csv"   # <--- ADD THIS
