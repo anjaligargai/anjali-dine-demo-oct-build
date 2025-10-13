@@ -362,6 +362,7 @@ def get_pipeline(
         model_metrics=model_metrics,
         drift_check_baselines=drift_check_baselines
     )
+    
     step_register_model = ModelStep(
         name="ModelRegistrationStep",
         step_args=register_model_step_args
@@ -370,6 +371,7 @@ def get_pipeline(
     # -------------------------
     # Assemble Pipeline
     # -------------------------
+    
     pipeline_steps = [
         step_process,
         step_auto_ml_training,
