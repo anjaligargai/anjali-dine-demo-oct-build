@@ -10,6 +10,7 @@ import os
 import boto3
 import pandas as pd
 from io import StringIO
+from sklearn.model_selection import train_test_split
 import sagemaker
 import sagemaker.session
 from sagemaker.estimator import Estimator
