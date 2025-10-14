@@ -317,7 +317,6 @@ def get_pipeline(
     # Define the local directory containing the requirements.txt
     custom_inference_dir = BASE_DIR
     
-    # Get the best model and inject the custom source_dir
     best_model = step_auto_ml_training.get_best_auto_ml_model(
         role, 
         sagemaker_session=pipeline_session,
@@ -407,7 +406,6 @@ def get_pipeline(
     retry_model = step_automl_retry.get_best_auto_ml_model(
         role, 
         sagemaker_session=pipeline_session,
-        source_dir=custom_inference_dir  # <-- INJECTS CUSTOM INFERENCE ARTIFACTS
     )
     
     step_create_model_retry = ModelStep(
