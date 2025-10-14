@@ -123,19 +123,33 @@ if __name__ == "__main__":
     raw_path = f"{BASE_DIR}/raw.csv"
     download_from_s3(args.input_data, raw_path)
 
-    # Read data
-    df = pd.read_csv(raw_path)
-    logger.info(f"Loaded raw dataset with shape {df.shape}")
-
-    # Clean and validate
-    df = clean_and_validate(df)
-
-    # Split data
-    train_df, test_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df[TARGET_COL])
-    train_df, val_df = train_test_split(train_df, test_size=0.2, random_state=42, stratify=train_df[TARGET_COL])
-    logger.info(f"Data split into Train={train_df.shape}, Validation={val_df.shape}, Test={test_df.shape}")
-
-    # Save splits
-    save_split(train_df, val_df, test_df)
-
-    logger.info("✅ Preprocessing complete.")
+        # --- Read data ---
+    df = pd.read_csv(local_path)
+    df.columns = feature_names + [target_col]
+    logger.info(f"Loaded dataset with shape {df.shape}")
+    
+    # --- Fix data types ---
+    # Convert only actual datetime column(s)
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    
+    # Ensure ID and categorical columns stay as string
+    df['store_id'] = df['store_id'].astype(str)
+    df['store_name'] = df['store_name'].astype(str)
+    df['item_id'] = df['item_id'].astype(str)
+    df['item_name'] = df['item_name'].astype(str)
+    
+    # --- Split train/val/test ---
+    train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+    train_df, val_df = train_test_split(train_df, test_size=0.2, random_state=42)
+    
+    logger.info(
+        f"Split into Train={train_df.shape}, Validation={val_df.shape}, Test={test_df.shape}"
+    )
+    
+    # --- Save outputs (with headers!) ---
+    train_df.to_csv(f"{base_dir}/train/train.csv", index=False)
+    val_df.to_csv(f"{base_dir}/validation/validation.csv", index=False)
+    test_df.to_csv(f"{base_dir}/test/test.csv", index=False)
+    
+    logger.info("✅ Preprocessing complete. Files written with headers.")
+    
