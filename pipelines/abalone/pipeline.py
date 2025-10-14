@@ -321,9 +321,16 @@ def get_pipeline(
     best_model = step_auto_ml_training.get_best_auto_ml_model(
         role, 
         sagemaker_session=pipeline_session,
-        source_dir=custom_inference_dir  # <-- INJECTS CUSTOM INFERENCE ARTIFACTS
     )
-    step_create_model = ModelStep(name="ModelCreationStep", step_args=best_model.create(instance_type=instance_type))
+    
+    step_create_model = ModelStep(
+        name="ModelCreationStep", 
+        step_args=best_model.create(
+            instance_type=instance_type,
+            source_dir=custom_inference_dir,
+            entry_point='inference.py' # <-- Use a valid entry point, often the default handler
+        )
+    )
 
     # batch transform
     transformer = Transformer(
@@ -404,7 +411,14 @@ def get_pipeline(
         source_dir=custom_inference_dir  # <-- INJECTS CUSTOM INFERENCE ARTIFACTS
     )
     
-    step_create_model_retry = ModelStep(name="ModelCreationStepRetry", step_args=retry_model.create(instance_type=instance_type))
+    step_create_model_retry = ModelStep(
+        name="ModelCreationStepRetry", 
+        step_args=retry_model.create(
+            instance_type=instance_type,
+            source_dir=custom_inference_dir,
+            entry_point='inference.py'
+        )
+    )
     transformer_retry = Transformer(
         model_name=step_create_model_retry.properties.ModelName,
         instance_count=instance_count,
