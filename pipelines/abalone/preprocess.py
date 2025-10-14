@@ -74,8 +74,21 @@ if __name__ == "__main__":
     # Clean up and type conversions
     # ----------------------------------------------------------------
     # Convert date column safely
+    # ----------------------------------------------------------------
+    # Safe date parsing — prevents "Unknown string format: store_id"
+    # ----------------------------------------------------------------
     if "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        # Only convert if column has valid date-like values
+        def safe_to_datetime(x):
+            try:
+                return pd.to_datetime(x, errors="raise")
+            except Exception:
+                return pd.NaT
+    
+        df["date"] = df["date"].apply(lambda x: safe_to_datetime(x))
+    else:
+        logger.warning("⚠️ No 'date' column found — skipping datetime conversion.")
+
 
     # Convert boolean-like columns
     bool_cols = ["is_weekend", "is_holiday", "is_promotion", "stock_out", "is_vegetarian"]
