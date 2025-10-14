@@ -315,7 +315,7 @@ def get_pipeline(
 
     
     # Define the local directory containing the requirements.txt
-    custom_inference_dir = os.path.join(BASE_DIR, "custom_inference")
+    custom_inference_dir = BASE_DIR
     
     # Get the best model and inject the custom source_dir
     best_model = step_auto_ml_training.get_best_auto_ml_model(
