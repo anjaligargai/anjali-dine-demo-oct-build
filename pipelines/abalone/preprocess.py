@@ -53,6 +53,13 @@ if __name__ == "__main__":
     df.columns = feature_names + [target_col]
     logger.info(f"Loaded dataset with shape {df.shape}")
 
+    # Inside PreprocessDineBrandsData or preprocessing.py
+    for col in df.columns:
+        try:
+            df[col] = pd.to_datetime(df[col], errors='raise')
+        except Exception:
+            df[col] = df[col].astype(str)
+
     # --- Split train/val/test ---
     train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
     train_df, val_df = train_test_split(train_df, test_size=0.2, random_state=42)
