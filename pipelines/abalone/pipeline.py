@@ -329,19 +329,6 @@ def get_pipeline(
         name="BatchTransformStep", step_args=transformer.transform(data=s3_x_test_prefix, content_type="text/csv")
     )
 
-    step_args = transformer.transform(
-        data=transform_inputs.data,
-        input_filter="$[1:]",
-        join_source="Input",
-        output_filter="$[0,-1]",
-        content_type="text/csv",
-        split_type="Line",
-    )
-    
-    step_transform = TransformStep(
-        name="AbaloneTransform",
-        step_args=step_args,
-    )
 
     # evaluation
     evaluation_report = PropertyFile(name="evaluation", output_name="evaluation_metrics", path="evaluation_metrics.json")
@@ -557,10 +544,10 @@ def get_pipeline(
     # header names that should be used in the `ModelQualityCheckConfig`.
 
     model_quality_check_config = ModelQualityCheckConfig(
-        baseline_dataset=step_transform.properties.TransformOutput.S3OutputPath,
+        baseline_dataset=step_batch_transform.properties.TransformOutput.S3OutputPath,
         dataset_format=DatasetFormat.csv(header=False),
         output_s3_uri=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'modelqualitycheckstep']),
-        problem_type='Regression',
+        problem_type='BinaryClassification',
         inference_attribute='_c0',
         ground_truth_attribute='_c1'
     )
@@ -707,35 +694,41 @@ def get_pipeline(
             s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
             content_type="application/json",
         ),
-    model_data_constraints=MetricsSource(
+        model_data_constraints=MetricsSource(
             s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-    bias_pre_training_constraints=MetricsSource(
+        bias_pre_training_constraints=MetricsSource(
             s3_uri=data_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-    bias_config_file=FileSource(
-            s3_uri=model_bias_check_config.monitoring_analysis_config_uri,
-            content_type="application/json",
-        ),
-    model_statistics=MetricsSource(
-            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
-            content_type="application/json",
-        ),
-    model_constraints=MetricsSource(
-            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
-            content_type="application/json",
-        ),
-    bias_post_training_constraints=MetricsSource(
+        # --- ADD THIS LINE TO FIX THE 'Bias' KEYERROR IN YOUR CI/CD SCRIPT ---
+        Bias=MetricsSource(
             s3_uri=model_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-    explainability_constraints=MetricsSource(
+        # ---------------------------------------------------------------------
+        bias_config_file=FileSource(
+            s3_uri=model_bias_check_config.monitoring_analysis_config_uri,
+            content_type="application/json",
+        ),
+        model_statistics=MetricsSource(
+            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
+            content_type="application/json",
+        ),
+        model_constraints=MetricsSource(
+            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+        bias_post_training_constraints=MetricsSource(
+            s3_uri=model_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+        explainability_constraints=MetricsSource(
             s3_uri=model_explainability_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-    explainability_config_file=FileSource(
+        explainability_config_file=FileSource(
             s3_uri=model_explainability_check_config.monitoring_analysis_config_uri,
             content_type="application/json",
         )
