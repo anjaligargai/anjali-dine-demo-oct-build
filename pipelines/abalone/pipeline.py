@@ -327,8 +327,7 @@ def get_pipeline(
         name="ModelCreationStep", 
         step_args=best_model.create(
             instance_type=instance_type,
-            source_dir=custom_inference_dir,
-            entry_point='inference.py' # <-- Use a valid entry point, often the default handler
+    
         )
     )
 
@@ -415,8 +414,7 @@ def get_pipeline(
         name="ModelCreationStepRetry", 
         step_args=retry_model.create(
             instance_type=instance_type,
-            source_dir=custom_inference_dir,
-            entry_point='inference.py'
+          
         )
     )
     transformer_retry = Transformer(
