@@ -702,12 +702,7 @@ def get_pipeline(
             s3_uri=data_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
             content_type="application/json",
         ),
-        # --- ADD THIS LINE TO FIX THE 'Bias' KEYERROR IN YOUR CI/CD SCRIPT ---
-        Bias=MetricsSource(
-            s3_uri=model_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
-            content_type="application/json",
-        ),
-        # ---------------------------------------------------------------------
+      
         bias_config_file=FileSource(
             s3_uri=model_bias_check_config.monitoring_analysis_config_uri,
             content_type="application/json",
