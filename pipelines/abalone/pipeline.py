@@ -313,8 +313,16 @@ def get_pipeline(
         step_args=automl.fit(inputs=[AutoMLInput(inputs=s3_train_val, target_attribute_name=target_col)])
     )
 
-    # create model
-    best_model = step_auto_ml_training.get_best_auto_ml_model(role, sagemaker_session=pipeline_session)
+    
+    # Define the local directory containing the requirements.txt
+    custom_inference_dir = os.path.join(BASE_DIR, "custom_inference")
+    
+    # Get the best model and inject the custom source_dir
+    best_model = step_auto_ml_training.get_best_auto_ml_model(
+        role, 
+        sagemaker_session=pipeline_session,
+        source_dir=custom_inference_dir  # <-- INJECTS CUSTOM INFERENCE ARTIFACTS
+    )
     step_create_model = ModelStep(name="ModelCreationStep", step_args=best_model.create(instance_type=instance_type))
 
     # batch transform
@@ -389,7 +397,13 @@ def get_pipeline(
     # -------------------------
     # Retry evaluation (Option 1 flow)
     # -------------------------
-    retry_model = step_automl_retry.get_best_auto_ml_model(role, sagemaker_session=pipeline_session)
+    # Modified line to implement Solution 1 for the retry flow
+    retry_model = step_automl_retry.get_best_auto_ml_model(
+        role, 
+        sagemaker_session=pipeline_session,
+        source_dir=custom_inference_dir  # <-- INJECTS CUSTOM INFERENCE ARTIFACTS
+    )
+    
     step_create_model_retry = ModelStep(name="ModelCreationStepRetry", step_args=retry_model.create(instance_type=instance_type))
     transformer_retry = Transformer(
         model_name=step_create_model_retry.properties.ModelName,
