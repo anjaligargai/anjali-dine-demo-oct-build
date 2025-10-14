@@ -7,6 +7,7 @@ phases:
     commands:
       - pip install --upgrade --force-reinstall . "awscli>1.20.30"
       - pip install --upgrade "sagemaker>=2.150.0"
+      - pip install boto3 --upgrade --quiet
       
   
   build:
