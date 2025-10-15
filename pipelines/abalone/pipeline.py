@@ -496,6 +496,32 @@ def get_pipeline(
         else_steps=[step_automl_new_data],
     )
 
+    drift_check_baselines = DriftCheckBaselines(
+        model_data_statistics=MetricsSource(
+            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
+            content_type="application/json",
+        ),
+        model_data_constraints=MetricsSource(
+            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+        bias_pre_training_constraints=MetricsSource(
+            s3_uri=data_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+      
+        model_statistics=MetricsSource(
+            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
+            content_type="application/json",
+        ),
+        model_constraints=MetricsSource(
+            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        )
+       
+    )
+
+    
     # -------------------------
     # Register Model (common)
     # -------------------------
@@ -637,31 +663,7 @@ def get_pipeline(
         ),
     )
 
-    drift_check_baselines = DriftCheckBaselines(
-        model_data_statistics=MetricsSource(
-            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
-            content_type="application/json",
-        ),
-        model_data_constraints=MetricsSource(
-            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
-            content_type="application/json",
-        ),
-        bias_pre_training_constraints=MetricsSource(
-            s3_uri=data_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
-            content_type="application/json",
-        ),
-      
-        model_statistics=MetricsSource(
-            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
-            content_type="application/json",
-        ),
-        model_constraints=MetricsSource(
-            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
-            content_type="application/json",
-        )
-       
-    )
-
+    
 
     # -------------------------
     # Assemble pipeline
