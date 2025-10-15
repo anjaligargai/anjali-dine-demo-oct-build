@@ -93,15 +93,17 @@ def main():  # pragma: no cover
 
         execution = pipeline.start(
             parameters=dict(
-                SkipDataQualityCheck=False,  # skip drift check for data quality
-                RegisterNewDataQualityBaseline=True,  # register newly calculated baseline for data quality
-                SkipDataBiasCheck=True,  # skip drift check for data bias
-                RegisterNewDataBiasBaseline=True,  # register newly calculated baseline for data bias
-                SkipModelQualityCheck=True,  # skip drift check for model quality
-                RegisterNewModelQualityBaseline=True,  # register newly calculated baseline for model quality
-             
-            )
+            # Correctly configured to generate a baseline
+            SkipDataQualityCheck=False,
+            RegisterNewDataQualityBaseline=True,
+            # Intentionally skipping Bias checks
+            SkipDataBiasCheck=True,
+            RegisterNewDataBiasBaseline=True,
+            # CORRECTED: Now configured to generate a baseline
+            SkipModelQualityCheck=False,
+            RegisterNewModelQualityBaseline=True,
         )
+)
 
         # Update above code as below to use default parameter values for future pipeline executions
         # after approving the model registered by the first pipeline execution in Model Registry
