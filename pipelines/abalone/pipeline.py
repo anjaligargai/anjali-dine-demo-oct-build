@@ -476,6 +476,7 @@ def get_pipeline(
             content_type="application/json",
         ),
     )
+    
     step_register_model = ModelStep(
         name="ModelRegistrationStep",
         step_args=best_model.register(
@@ -600,7 +601,7 @@ def get_pipeline(
             s3_uri=model_quality_check_step.properties.CalculatedBaselineConstraints,
             content_type="application/json",
         ),
-    
+    )
 
     drift_check_baselines = DriftCheckBaselines(
         model_data_statistics=MetricsSource(
@@ -616,7 +617,6 @@ def get_pipeline(
             content_type="application/json",
         ),
       
-    
         model_statistics=MetricsSource(
             s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
             content_type="application/json",
