@@ -5,9 +5,9 @@ phases:
     runtime-versions:
       python: 3.11
     commands:
-      - pip install --upgrade pip
-      - pip install "boto3>=1.28.0" "sagemaker>=2.150.0" "awscli>1.20.30" --quiet
-      
+      # This single command installs the required AWS libraries AND the local
+      # package (from setup.py) which provides the 'run-pipeline' command.
+      - pip install --upgrade . "boto3>=1.28.0" "sagemaker>=2.150.0" "awscli>1.20.30" --quiet
   
   build:
     commands:
@@ -19,4 +19,3 @@ phases:
           --tags "[{\"Key\":\"sagemaker:project-name\", \"Value\":\"${SAGEMAKER_PROJECT_NAME}\"}, {\"Key\":\"sagemaker:project-id\", \"Value\":\"${SAGEMAKER_PROJECT_ID}\"}]" \
           --kwargs "{\"region\":\"${AWS_REGION}\",\"role\":\"${SAGEMAKER_PIPELINE_ROLE_ARN}\",\"default_bucket\":\"${ARTIFACT_BUCKET}\",\"pipeline_name\":\"${SAGEMAKER_PROJECT_NAME_ID}\",\"model_package_group_name\":\"${SAGEMAKER_PROJECT_NAME_ID}\",\"base_job_prefix\":\"${SAGEMAKER_PROJECT_NAME_ID}\",\"sagemaker_project_name\":\"${SAGEMAKER_PROJECT_NAME}\"}"
       - echo "Create/Update of the SageMaker Pipeline and execution completed."
-
