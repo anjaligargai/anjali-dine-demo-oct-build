@@ -93,7 +93,7 @@ def main():  # pragma: no cover
 
         execution = pipeline.start(
             parameters=dict(
-                SkipDataQualityCheck=True,  # skip drift check for data quality
+                SkipDataQualityCheck=False,  # skip drift check for data quality
                 RegisterNewDataQualityBaseline=True,  # register newly calculated baseline for data quality
                 SkipDataBiasCheck=True,  # skip drift check for data bias
                 RegisterNewDataBiasBaseline=True,  # register newly calculated baseline for data bias
