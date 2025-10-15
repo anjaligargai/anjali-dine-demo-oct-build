@@ -496,56 +496,6 @@ def get_pipeline(
         else_steps=[step_automl_new_data],
     )
 
-    drift_check_baselines = DriftCheckBaselines(
-        model_data_statistics=MetricsSource(
-            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
-            content_type="application/json",
-        ),
-        model_data_constraints=MetricsSource(
-            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
-            content_type="application/json",
-        ),
-        bias_pre_training_constraints=MetricsSource(
-            s3_uri=data_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
-            content_type="application/json",
-        ),
-      
-        model_statistics=MetricsSource(
-            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
-            content_type="application/json",
-        ),
-        model_constraints=MetricsSource(
-            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
-            content_type="application/json",
-        )
-       
-    )
-
-    
-    # -------------------------
-    # Register Model (common)
-    # -------------------------
-    model_metrics = ModelMetrics(
-        model_statistics=MetricsSource(
-            s3_uri=step_auto_ml_training.properties.BestCandidateProperties.ModelInsightsJsonReportPath,
-            content_type="application/json",
-        ),
-        explainability=MetricsSource(
-            s3_uri=step_auto_ml_training.properties.BestCandidateProperties.ExplainabilityJsonReportPath,
-            content_type="application/json",
-        ),
-    )
-    
-    step_register_model = ModelStep(
-        name="ModelRegistrationStep",
-        step_args=best_model.register(
-            content_types=["text/csv"], response_types=["text/csv"],
-            inference_instances=[instance_type], transform_instances=[instance_type],
-            model_package_group_name=model_package_group_name,
-            approval_status=model_approval_status, model_metrics=model_metrics,
-            drift_check_baselines=drift_check_baselines 
-        ),
-    )
     check_job_config = CheckJobConfig(
         role=role,
         instance_count=1,
@@ -639,7 +589,7 @@ def get_pipeline(
         model_package_group_name=model_package_group_name
     )
 
-    
+
     model_metrics = ModelMetrics(
         model_data_statistics=MetricsSource(
             s3_uri=data_quality_check_step.properties.CalculatedBaselineStatistics,
@@ -663,6 +613,57 @@ def get_pipeline(
         ),
     )
 
+    drift_check_baselines = DriftCheckBaselines(
+        model_data_statistics=MetricsSource(
+            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
+            content_type="application/json",
+        ),
+        model_data_constraints=MetricsSource(
+            s3_uri=data_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+        bias_pre_training_constraints=MetricsSource(
+            s3_uri=data_bias_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        ),
+      
+        model_statistics=MetricsSource(
+            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckStatistics,
+            content_type="application/json",
+        ),
+        model_constraints=MetricsSource(
+            s3_uri=model_quality_check_step.properties.BaselineUsedForDriftCheckConstraints,
+            content_type="application/json",
+        )
+       
+    )
+
+    
+    # -------------------------
+    # Register Model (common)
+    # -------------------------
+    model_metrics = ModelMetrics(
+        model_statistics=MetricsSource(
+            s3_uri=step_auto_ml_training.properties.BestCandidateProperties.ModelInsightsJsonReportPath,
+            content_type="application/json",
+        ),
+        explainability=MetricsSource(
+            s3_uri=step_auto_ml_training.properties.BestCandidateProperties.ExplainabilityJsonReportPath,
+            content_type="application/json",
+        ),
+    )
+    
+    step_register_model = ModelStep(
+        name="ModelRegistrationStep",
+        step_args=best_model.register(
+            content_types=["text/csv"], response_types=["text/csv"],
+            inference_instances=[instance_type], transform_instances=[instance_type],
+            model_package_group_name=model_package_group_name,
+            approval_status=model_approval_status, model_metrics=model_metrics,
+            drift_check_baselines=drift_check_baselines 
+        ),
+    )
+    
     
 
     # -------------------------
