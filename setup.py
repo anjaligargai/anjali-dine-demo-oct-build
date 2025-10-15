@@ -12,7 +12,14 @@ with open("README.md", "r") as f:
     readme = f.read()
 
 
-required_packages = ["sagemaker==2.93.0"]
+required_packages = [
+        # Use flexible versions or remove them if managed by buildspec.
+        "sagemaker>=2.150.0",
+        "boto3>=1.28.0",
+        "pandas",
+        "scikit-learn",
+    ]
+
 extras = {
     "test": [
         "black",
