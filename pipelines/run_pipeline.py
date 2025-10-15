@@ -99,10 +99,7 @@ def main():  # pragma: no cover
                 RegisterNewDataBiasBaseline=True,  # register newly calculated baseline for data bias
                 SkipModelQualityCheck=True,  # skip drift check for model quality
                 RegisterNewModelQualityBaseline=True,  # register newly calculated baseline for model quality
-                SkipModelBiasCheck=True,  # skip drift check for model bias
-                RegisterNewModelBiasBaseline=True,  # register newly calculated baseline for model bias
-                SkipModelExplainabilityCheck=True,  # skip drift check for model explainability
-                RegisterNewModelExplainabilityBaseline=True  # register newly calculated baseline for explainability
+             
             )
         )
 
