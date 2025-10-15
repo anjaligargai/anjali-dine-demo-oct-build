@@ -358,6 +358,40 @@ def get_pipeline(
         property_files=[evaluation_report],
     )
 
+    # ... after step_batch_transform and step_evaluation ...
+
+    # NEW STEP: Combine predictions and ground truth for Model Quality Check
+    combine_metrics_processor = SKLearnProcessor(
+        framework_version="1.0-1", # Match your evaluation processor
+        role=role,
+        instance_type=instance_type.default_value,
+        instance_count=1,
+        sagemaker_session=pipeline_session,
+        base_job_name=f"{base_job_prefix}/combine-metrics",
+    )
+
+    step_combine_for_quality_check = ProcessingStep(
+        name="CombinePredictionsAndGroundTruth",
+        step_args=combine_metrics_processor.run(
+            inputs=[
+                ProcessingInput(
+                    source=step_batch_transform.properties.TransformOutput.S3OutputPath,
+                    destination="/opt/ml/processing/input/predictions",
+                ),
+                ProcessingInput(
+                    source=s3_y_test.replace("y_test.csv", ""), # Provide the directory of y_test
+                    destination="/opt/ml/processing/input/ground_truth",
+                ),
+            ],
+            outputs=[
+                ProcessingOutput(
+                    output_name="combined", 
+                    source="/opt/ml/processing/output/combined"
+                ),
+            ],
+            code=os.path.join(BASE_DIR, "pipelines/abalone/combine_metrics.py"),
+        ),
+    )
     # -------------------------
     # Condition 1 → Retry if F1 < threshold
     # -------------------------
@@ -560,7 +594,7 @@ def get_pipeline(
     # header names that should be used in the `ModelQualityCheckConfig`.
 
     model_quality_check_config = ModelQualityCheckConfig(
-        baseline_dataset=step_batch_transform.properties.TransformOutput.S3OutputPath,
+        baseline_dataset=step_combine_for_quality_check.properties.ProcessingOutputConfig.Outputs["combined"].S3Output.S3Uri,
         dataset_format=DatasetFormat.csv(header=False),
         output_s3_uri=Join(on='/', values=['s3:/', default_bucket, base_job_prefix, ExecutionVariables.PIPELINE_EXECUTION_ID, 'modelqualitycheckstep']),
         problem_type='BinaryClassification',
@@ -635,7 +669,7 @@ def get_pipeline(
     steps = [
         step_process,step_auto_ml_training, step_create_model, step_batch_transform, step_evaluation,
         step_cond_first, step_create_model_retry, step_batch_transform_retry, step_eval_retry, step_cond_retry,
-        step_register_model , data_quality_check_step, data_bias_check_step , model_quality_check_step
+        step_register_model , data_quality_check_step, data_bias_check_step ,step_combine_for_quality_check, model_quality_check_step
     ]
 
     return Pipeline(
