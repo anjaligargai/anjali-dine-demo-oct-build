@@ -91,25 +91,30 @@ def main():  # pragma: no cover
         # the baselines calculated will be registered as DriftCheckBaselines.
         # After the first execution, the default parameters can be used.
 
-        execution = pipeline.start(
-            parameters=dict(
-            # Correctly configured to generate a baseline
+        # Store the parameters in a variable first
+        pipeline_parameters = dict(
             SkipDataQualityCheck=False,
             RegisterNewDataQualityBaseline=True,
-            # Intentionally skipping Bias checks
             SkipDataBiasCheck=True,
             RegisterNewDataBiasBaseline=True,
-            # CORRECTED: Now configured to generate a baseline
             SkipModelQualityCheck=False,
             RegisterNewModelQualityBaseline=True,
         )
-)
+        
+        # --- THIS IS THE CRUCIAL DEBUGGING STEP ---
+        print("#################################################################")
+        print("## DEBUG: EXECUTING PIPELINE WITH THE FOLLOWING PARAMETERS:    ##")
+        print(json.dumps(pipeline_parameters, indent=2))
+        print("#################################################################")
+        # --------------------------------------------------------------------
+        
+        # Now, start the pipeline with the parameters
+        execution = pipeline.start(parameters=pipeline_parameters)
 
         # Update above code as below to use default parameter values for future pipeline executions
         # after approving the model registered by the first pipeline execution in Model Registry
         # so that all the checks are enabled and previous baselines are retained.
 
-        # execution = pipeline.start()
 
         print(f"\n###### Execution started with PipelineExecutionArn: {execution.arn}")
 
