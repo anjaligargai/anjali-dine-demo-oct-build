@@ -5,9 +5,8 @@ phases:
     runtime-versions:
       python: 3.11
     commands:
-      - pip install --upgrade --force-reinstall . "awscli>1.20.30"
-      - pip install --upgrade "sagemaker>=2.150.0"
-      - pip install boto3 --upgrade --quiet
+      - pip install --upgrade pip
+      - pip install "boto3>=1.28.0" "sagemaker>=2.150.0" "awscli>1.20.30" --quiet
       
   
   build:
