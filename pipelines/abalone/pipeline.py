@@ -517,6 +517,7 @@ def get_pipeline(
             inference_instances=[instance_type], transform_instances=[instance_type],
             model_package_group_name=model_package_group_name,
             approval_status=model_approval_status, model_metrics=model_metrics,
+            drift_check_baselines=drift_check_baselines 
         ),
     )
     check_job_config = CheckJobConfig(
