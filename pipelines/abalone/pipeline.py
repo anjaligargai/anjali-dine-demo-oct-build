@@ -358,7 +358,6 @@ def get_pipeline(
         property_files=[evaluation_report],
     )
 
-    # ... after step_batch_transform and step_evaluation ...
 
     # NEW STEP: Combine predictions and ground truth for Model Quality Check
     combine_metrics_processor = SKLearnProcessor(
@@ -389,7 +388,7 @@ def get_pipeline(
                     source="/opt/ml/processing/output/combined"
                 ),
             ],
-            code=os.path.join(BASE_DIR, "pipelines/abalone/combine_metrics.py"),
+            code=os.path.join(BASE_DIR, "combine_metrics.py"),
         ),
     )
     # -------------------------
